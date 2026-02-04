@@ -21,17 +21,23 @@ WORKDIR /var/www/html
 
 COPY . .
 
+RUN mkdir -p database storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
+
+RUN touch database/database.sqlite
+
+RUN chmod -R 777 storage bootstrap/cache database
+
 RUN composer install --no-dev --optimize-autoloader
 
 RUN npm install && npm run build
 
-RUN mkdir -p database storage/logs storage/framework/cache storage/framework/sessions storage/framework/views
+COPY .env.render .env
 
-RUN touch database/database.sqlite
-
-RUN chmod -R 775 storage bootstrap/cache database
-
-RUN php artisan config:cache && php artisan route:cache && php artisan view:cache
+RUN php artisan config:clear
+RUN php artisan cache:clear
+RUN php artisan config:cache
+RUN php artisan route:cache
+RUN php artisan view:cache
 
 RUN php artisan migrate --force
 
@@ -39,4 +45,4 @@ RUN php artisan db:seed --force
 
 EXPOSE 10000
 
-CMD php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
+CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"]
