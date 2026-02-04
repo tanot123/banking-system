@@ -21,7 +21,9 @@ WORKDIR /var/www/html
 
 COPY . .
 
-RUN mkdir -p database storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
+COPY .env.render .env
+
+RUN mkdir -p database storage/logs storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache
 
 RUN touch database/database.sqlite
 
@@ -31,10 +33,6 @@ RUN composer install --no-dev --optimize-autoloader
 
 RUN npm install && npm run build
 
-COPY .env.render .env
-
-RUN php artisan config:clear
-RUN php artisan cache:clear
 RUN php artisan config:cache
 RUN php artisan route:cache
 RUN php artisan view:cache
